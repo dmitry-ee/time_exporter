@@ -11,11 +11,12 @@ on:
 
 jobs:
   main:
+    environment: base
     env:
       CONTAINER_NAME: time_exporter
       CONTAINER_TIMEOUT_SEC: 5
       SECRET_DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
-      DOCKER_IMAGE: time_exporter
+      DOCKER_IMAGE: time-exporter
       RUN_PORT: 9818
     runs-on: ubuntu-latest
     steps:
@@ -63,20 +64,20 @@ jobs:
         run: docker logs $CONTAINER_NAME && exit 1
         if: env.RUN_TEST_RESULT == 'FAIL' || env.API_TEST_RESULT == 'FAIL'
 
-      - name: Run promu build && crossbuild
-        run: |
-          $GOBIN/promu crossbuild
-          $GOBIN/promu crossbuild tarballs
+#      - name: Run promu build && crossbuild
+#        run: |
+#          $GOBIN/promu crossbuild
+#          $GOBIN/promu crossbuild tarballs
 
-      - uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          title: "Release $VERSION"
-          files: |
-            .tarballs/*.tar.gz
-        if: github.ref == 'refs/heads/master'
+#      - uses: "marvinpinto/action-automatic-releases@latest"
+#        with:
+#          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+#          automatic_release_tag: "latest"
+#          prerelease: true
+#          title: "Release $VERSION"
+#          files: |
+#            .tarballs/*.tar.gz
+#        if: github.ref == 'refs/heads/master'
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
