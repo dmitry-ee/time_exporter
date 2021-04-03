@@ -41,12 +41,9 @@ jobs:
           echo PATH=$PATH:$GOBIN >> $GITHUB_ENV
 
       - name: Run test build
-        run: make common-build
-
-      - name: Run promu build && crossbuild
         run: |
-          $GOBIN/promu crossbuild
-          $GOBIN/promu crossbuild tarballs
+          make common-build
+          $GOBIN/promu --config .promu.yml build --prefix .build/linux-amd64
 
       - name: Docker build
         run: docker build -t $DOCKER_REPO/$DOCKER_IMAGE:$VERSION . -f ./Dockerfile
@@ -68,18 +65,23 @@ jobs:
         run: docker logs $CONTAINER_NAME && exit 1
         if: env.RUN_TEST_RESULT == 'FAIL' || env.API_TEST_RESULT == 'FAIL'
 
+      - name: Run promu build && crossbuild
+        run: |
+          $GOBIN/promu crossbuild
+          $GOBIN/promu crossbuild tarballs
+
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           prerelease: true
-          title: "Pre-release"
+          title: "Release"
           files: |
             .tarballs/*.tar.gz
         if: github.ref == 'refs/heads/master'
 
       - name: Docker login
-        run: echo "$SECRET_DOCKER_HUB_PASSWORD" | docker login -u $SECRET_DOCKER_HUB_USER --password-stdin
+        run: docker login -u $SECRET_DOCKER_HUB_USER --password-stdin -p "$SECRET_DOCKER_HUB_PASSWORD"
         if: github.ref == 'refs/heads/master'
 
       - name: Docker push versioned image
