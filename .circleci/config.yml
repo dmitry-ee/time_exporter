@@ -16,7 +16,8 @@ jobs:
     executor: golang
 
     steps:
-#      - prometheus/setup_environment
+      - run: checkout
+      - run: make build
       - run: go mod download
       - run: make
 #      - prometheus/store_artifact:
@@ -29,6 +30,7 @@ jobs:
     parallelism: 3
 
     steps:
+      - run: checkout
       - run: make
       - run: docker run --privileged linuxkit/binfmt:v0.8
       - run: promu crossbuild -v --parallelism $CIRCLE_NODE_TOTAL --parallelism-thread $CIRCLE_NODE_INDEX
