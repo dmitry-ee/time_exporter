@@ -45,8 +45,8 @@ jobs:
 
       - name: Run promu build && crossbuild
         run: |
-          promu crossbuild
-          promu crossbuild tarballs
+          $GOBIN/promu crossbuild
+          $GOBIN/promu crossbuild tarballs
 
       - name: Docker build
         run: docker build -t $DOCKER_REPO/$DOCKER_IMAGE:$VERSION . -f ./Dockerfile
