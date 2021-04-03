@@ -1,8 +1,8 @@
 ---
 version: 2.1
 
-#orbs:
-#  prometheus: prometheus/prometheus@0.11.0
+orbs:
+  go: circleci/go@1.6.0
 
 executors:
   # Whenever the Go version is updated here, .promu.yml and .promu-cgo.yml
@@ -19,37 +19,8 @@ jobs:
 #      - prometheus/setup_environment
       - run: go mod download
       - run: make
-      - prometheus/store_artifact:
-          file: time_exporter
-
-  codespell:
-    docker:
-      - image: circleci/python
-
-    steps:
-      - checkout
-      - run: sudo pip install codespell
-      - run: codespell --skip=".git,./vendor,ttar,go.mod,go.sum,*pem,./collector/fixtures" -L uint,packages\',uptodate
-
-  test_mixins:
-    executor: golang
-    steps:
-      - checkout
-      - run:
-          command: go install -mod=readonly github.com/google/go-jsonnet/cmd/jsonnet github.com/google/go-jsonnet/cmd/jsonnetfmt github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb github.com/prometheus/prometheus/cmd/promtool
-          working_directory: ~/project/docs/node-mixin
-      - run:
-          command: make clean
-          working_directory: ~/project/docs/node-mixin
-      - run:
-          command: jb install
-          working_directory: ~/project/docs/node-mixin
-      - run:
-          command: make
-          working_directory: ~/project/docs/node-mixin
-      - run:
-          command: git diff --exit-code
-          working_directory: ~/project/docs/node-mixin
+#      - prometheus/store_artifact:
+#          file: time_exporter
 
   build:
     machine:
@@ -58,7 +29,7 @@ jobs:
     parallelism: 3
 
     steps:
-      - prometheus/setup_environment
+      - run: make
       - run: docker run --privileged linuxkit/binfmt:v0.8
       - run: promu crossbuild -v --parallelism $CIRCLE_NODE_TOTAL --parallelism-thread $CIRCLE_NODE_INDEX
       - run: promu --config .promu-cgo.yml crossbuild -v --parallelism $CIRCLE_NODE_TOTAL --parallelism-thread $CIRCLE_NODE_INDEX
@@ -70,37 +41,9 @@ jobs:
           path: .build
           destination: /build
 
-  test_docker:
-    machine:
-      image: ubuntu-2004:202101-01
-
-    environment:
-      DOCKER_TEST_IMAGE_NAME: quay.io/prometheus/golang-builder:1.16-base
-      REPO_PATH: github.com/dmitry-ee/time_exporter
-
-    steps:
-      - prometheus/setup_environment
-      - attach_workspace:
-          at: .
-      - run:
-          command: |
-            if [ -n "$CIRCLE_TAG" ]; then
-              make docker DOCKER_IMAGE_TAG=$CIRCLE_TAG
-            else
-              make docker
-            fi
-      - run: docker images
-      - run: docker run --rm -t -v "$(pwd):/app" "${DOCKER_TEST_IMAGE_NAME}" -i "${REPO_PATH}" -T
-      - run:
-          command: |
-            if [ -n "$CIRCLE_TAG" ]; then
-              make test-docker DOCKER_IMAGE_TAG=$CIRCLE_TAG
-            else
-              make test-docker
-            fi
 workflows:
   version: 2
-  node_exporter:
+  time_exporter:
     jobs:
       - test:
           filters:
@@ -110,36 +53,3 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - codespell:
-          filters:
-            tags:
-              only: /.*/
-      - test_docker:
-          requires:
-            - test
-            - build
-          filters:
-            tags:
-              only: /.*/
-      - test_mixins:
-          filters:
-            tags:
-              only: /.*/
-      - prometheus/publish_master:
-          context: org-context
-          requires:
-            - test
-            - build
-          filters:
-            branches:
-              only: master
-      - prometheus/publish_release:
-          context: org-context
-          requires:
-            - test
-            - build
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
