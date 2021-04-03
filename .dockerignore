@@ -1,5 +1,6 @@
 .build/
 .tarballs/
+time_exporter
 
 !.build/linux-amd64
 !.build/linux-armv7

@@ -40,6 +40,7 @@ jobs:
 
       - name: Run test build
         run: |
+          make build
           $GOBIN/promu --config .promu.yml build --prefix .build/linux-amd64
 
       - name: Docker build
