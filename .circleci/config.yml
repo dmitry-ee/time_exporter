@@ -59,6 +59,13 @@ jobs:
       REPO_PATH: github.com/prometheus/time_exporter
 
     steps:
+      - run:
+          command: |
+            if [ -n "DOCKER_LOGIN" ]; then
+              docker login --username DOCKER_LOGIN --password DOCKER_PASSWORD
+            else
+              echo "Docker Hub credentials unavailable, pulling anonymously"
+            fi
       - prometheus/setup_environment
       - attach_workspace:
           at: .
@@ -84,12 +91,20 @@ jobs:
       image: ubuntu-2004:202101-01
 
     steps:
+      - run:
+          command: |
+            if [ -n "DOCKER_LOGIN" ]; then
+              docker login --username DOCKER_LOGIN --password DOCKER_PASSWORD
+            else
+              echo "Docker Hub credentials unavailable, pulling anonymously"
+            fi
       - prometheus/publish_images:
           container_image_name: "time_exporter"
           login_variable: DOCKER_LOGIN
           password_variable: DOCKER_PASSWORD
           organization: ""
           registry: ""
+
 
 workflows:
   version: 2
