@@ -14,9 +14,7 @@ jobs:
     env:
       CONTAINER_NAME: time_exporter
       CONTAINER_TIMEOUT_SEC: 5
-      SECRET_DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      SECRET_DOCKER_HUB_USER: ${{ secrets.DOCKER_HUB_USER }}
-      SECRET_DOCKER_HUB_REPO: ${{ secrets.DOCKER_HUB_REPO }}
+      SECRET_DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
       DOCKER_IMAGE: time_exporter
       RUN_PORT: 9818
     runs-on: ubuntu-latest
@@ -34,7 +32,7 @@ jobs:
       - name: Set envs
         run: |
           echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
-          echo "DOCKER_REPO=$(if [[ "$SECRET_DOCKER_HUB_REPO" == "" ]]; then if [[ "$SECRET_DOCKER_HUB_USER" == "" ]]; then echo "testbuild"; else echo "$SECRET_DOCKER_HUB_USER"; fi; else echo "$SECRET_DOCKER_HUB_REPO"; fi)" >> $GITHUB_ENV
+          echo "DOCKER_REPO=$(if [[ "$SECRET_DOCKERHUB_REPO" == "" ]]; then if [[ "$SECRET_DOCKERHUB_USER" == "" ]]; then echo "testbuild"; else echo "$SECRET_DOCKERHUB_USER"; fi; else echo "$SECRET_DOCKERHUB_REPO"; fi)" >> $GITHUB_ENV
           echo GOPATH=$HOME/go >> $GITHUB_ENV
           echo GOBIN=$(go env GOPATH)/bin >> $GITHUB_ENV
           echo PATH=$PATH:$GOPATH >> $GITHUB_ENV
@@ -42,7 +40,6 @@ jobs:
 
       - name: Run test build
         run: |
-          make common-build
           $GOBIN/promu --config .promu.yml build --prefix .build/linux-amd64
 
       - name: Docker build
@@ -75,13 +72,16 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest"
           prerelease: true
-          title: "Release"
+          title: "Release $VERSION"
           files: |
             .tarballs/*.tar.gz
         if: github.ref == 'refs/heads/master'
 
-      - name: Docker login
-        run: docker login -u $SECRET_DOCKER_HUB_USER --password-stdin -p "$SECRET_DOCKER_HUB_PASSWORD"
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         if: github.ref == 'refs/heads/master'
 
       - name: Docker push versioned image
