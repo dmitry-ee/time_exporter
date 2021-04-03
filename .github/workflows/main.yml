@@ -26,10 +26,19 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up Go 1.12
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.16
+
       - name: Set envs
         run: |
           echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
           echo "DOCKER_REPO=$(if [[ "$SECRET_DOCKER_HUB_REPO" == "" ]]; then if [[ "$SECRET_DOCKER_HUB_USER" == "" ]]; then echo "testbuild"; else echo "$SECRET_DOCKER_HUB_USER"; fi; else echo "$SECRET_DOCKER_HUB_REPO"; fi)" >> $GITHUB_ENV
+          export GOPATH=$HOME/go
+          export GOBIN=$(go env GOPATH)/bin
+          export PATH=$PATH:$GOPATH
+          export PATH=$PATH:$GOBIN
 
       - name: Run test build
         run: make common-build
