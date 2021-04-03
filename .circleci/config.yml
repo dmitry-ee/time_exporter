@@ -78,6 +78,20 @@ jobs:
             else
               make test-docker
             fi
+
+  release_docker:
+    machine:
+      image: ubuntu-2004:202101-01
+      
+    steps:
+      - prometheus/publish_images:
+          parameters:
+            container_image_name: "time_exporter"
+            login_variable: DOCKER_LOGIN
+            password_variable: DOCKER_PASSWORD
+            organization: ""
+            registry: ""
+
 workflows:
   version: 2
   time_exporter:
@@ -101,14 +115,8 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - prometheus/publish_images:
+      - release_docker:
           context: org-context
-          parameters:
-            container_image_name: "time_exporter"
-            login_variable: DOCKER_LOGIN
-            password_variable: DOCKER_PASSWORD
-            organization: ""
-            registry: ""
           requires:
             - test
             - build
