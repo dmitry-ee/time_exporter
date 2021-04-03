@@ -82,15 +82,14 @@ jobs:
   release_docker:
     machine:
       image: ubuntu-2004:202101-01
-      
+
     steps:
       - prometheus/publish_images:
-          parameters:
-            container_image_name: "time_exporter"
-            login_variable: DOCKER_LOGIN
-            password_variable: DOCKER_PASSWORD
-            organization: ""
-            registry: ""
+          container_image_name: "time_exporter"
+          login_variable: DOCKER_LOGIN
+          password_variable: DOCKER_PASSWORD
+          organization: ""
+          registry: ""
 
 workflows:
   version: 2
