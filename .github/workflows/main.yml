@@ -64,17 +64,17 @@ jobs:
         run: docker logs $CONTAINER_NAME && exit 1
         if: env.RUN_TEST_RESULT == 'FAIL' || env.API_TEST_RESULT == 'FAIL'
 
-      - name: Run promu build && crossbuild
-        run: |
-          $GOBIN/promu crossbuild
-          $GOBIN/promu crossbuild tarballs
+#      - name: Run promu build && crossbuild
+#        run: |
+#          $GOBIN/promu crossbuild
+#          $GOBIN/promu crossbuild tarballs
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          automatic_release_tag: ${{ env.VERSION }}
           prerelease: false
-          title: "Release $VERSION"
+          title: "Release {{ env.VERSION }}"
           files: |
             .tarballs/*.tar.gz
         if: github.ref == 'refs/heads/master'
