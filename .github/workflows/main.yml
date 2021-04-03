@@ -10,7 +10,7 @@ on:
       - master
 
 jobs:
-  docker:
+  main:
     env:
       CONTAINER_NAME: time_exporter
       CONTAINER_TIMEOUT_SEC: 30
@@ -32,12 +32,11 @@ jobs:
           echo "DOCKER_REPO=$(if [[ "$SECRET_DOCKER_HUB_REPO" == "" ]]; then if [[ "$SECRET_DOCKER_HUB_USER" == "" ]]; then echo "testbuild"; else echo "$SECRET_DOCKER_HUB_USER"; fi; else echo "$SECRET_DOCKER_HUB_REPO"; fi)" >> $GITHUB_ENV
 
       - name: Run test build
-        run: make build
+        run: make common-build
 
       - name: Run promu build && crossbuild
         run: |
-          make common-build
-          promu crossbuild
+          $GOPATH/bin/promu crossbuild
 
       - name: Docker build
         run: docker build -t $DOCKER_REPO/$DOCKER_IMAGE:$VERSION . -f ./Dockerfile
