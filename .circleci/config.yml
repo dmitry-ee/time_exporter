@@ -16,11 +16,11 @@ jobs:
     executor: golang
 
     steps:
-      - prometheus/setup_environment
+#      - prometheus/setup_environment
       - run: go mod download
       - run: make
       - prometheus/store_artifact:
-          file: node_exporter
+          file: time_exporter
 
   codespell:
     docker:
@@ -76,7 +76,7 @@ jobs:
 
     environment:
       DOCKER_TEST_IMAGE_NAME: quay.io/prometheus/golang-builder:1.16-base
-      REPO_PATH: github.com/prometheus/node_exporter
+      REPO_PATH: github.com/dmitry-ee/time_exporter
 
     steps:
       - prometheus/setup_environment
