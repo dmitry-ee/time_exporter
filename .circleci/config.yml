@@ -101,10 +101,6 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - test_mixins:
-          filters:
-            tags:
-              only: /.*/
       - prometheus/publish_master:
           context: org-context
           requires:
