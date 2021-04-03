@@ -101,21 +101,17 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - prometheus/publish_master:
+      - prometheus/publish_images:
           context: org-context
+          parameters:
+            container_image_name: "time_exporter"
+            login_variable: DOCKER_LOGIN
+            password_variable: DOCKER_PASSWORD
+            organization: ""
+            registry: ""
           requires:
             - test
             - build
           filters:
             branches:
               only: master
-      - prometheus/publish_release:
-          context: org-context
-          requires:
-            - test
-            - build
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/

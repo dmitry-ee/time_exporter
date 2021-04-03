@@ -22,5 +22,5 @@ tarball:
 crossbuild:
   platforms:
     - darwin/amd64
-    - netbsd/amd64
-    - netbsd/386
+#    - netbsd/amd64
+#    - netbsd/386
