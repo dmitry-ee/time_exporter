@@ -56,10 +56,10 @@ jobs:
 
       - name: Check container is still running
         run: |
-          echo ::set-env name=RUN_TEST_RESULT::$(sleep $CONTAINER_TIMEOUT_SEC && if [[ $(docker inspect -f "{{.State.Running}}" $CONTAINER_NAME 2> /dev/null) == true ]]; then echo OK; else echo FAIL; fi)
+          echo "RUN_TEST_RESULT=$(sleep $CONTAINER_TIMEOUT_SEC && if [[ $(docker inspect -f "{{.State.Running}}" $CONTAINER_NAME 2> /dev/null) == true ]]; then echo OK; else echo FAIL; fi)"  >> $GITHUB_ENV
       - name: Check api is available by HTTP (response code is 200)
         run: |
-          echo "API_TEST_RESULT=$(if [[ $(curl -LIs localhost:$RUN_PORT -o /dev/null -w '%{http_code}') == 200 ]]; then echo OK; else echo FAIL; fi)"
+          echo "API_TEST_RESULT=$(if [[ $(curl -LIs localhost:$RUN_PORT -o /dev/null -w '%{http_code}') == 200 ]]; then echo OK; else echo FAIL; fi)" >> $GITHUB_ENV
       - name: Print test results
         run: |
           echo $RUN_TEST_RESULT
