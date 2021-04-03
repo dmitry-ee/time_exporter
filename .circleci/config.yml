@@ -50,42 +50,6 @@ jobs:
           path: .build
           destination: /build
 
-  test_docker:
-    machine:
-      image: ubuntu-2004:202101-01
-
-    environment:
-      DOCKER_TEST_IMAGE_NAME: quay.io/prometheus/golang-builder:1.16-base
-      REPO_PATH: github.com/prometheus/time_exporter
-
-    steps:
-      - run:
-          command: |
-            if [ -n "DOCKER_LOGIN" ]; then
-              docker login --username DOCKER_LOGIN --password DOCKER_PASSWORD
-            else
-              echo "Docker Hub credentials unavailable, pulling anonymously"
-            fi
-      - prometheus/setup_environment
-      - attach_workspace:
-          at: .
-      - run:
-          command: |
-            if [ -n "$CIRCLE_TAG" ]; then
-              make docker DOCKER_IMAGE_TAG=$CIRCLE_TAG
-            else
-              make docker
-            fi
-      - run: docker images
-      - run: docker run --rm -t -v "$(pwd):/app" "${DOCKER_TEST_IMAGE_NAME}" -i "${REPO_PATH}" -T
-      - run:
-          command: |
-            if [ -n "$CIRCLE_TAG" ]; then
-              make test-docker DOCKER_IMAGE_TAG=$CIRCLE_TAG
-            else
-              make test-docker
-            fi
-
   release_docker:
     machine:
       image: ubuntu-2004:202101-01
@@ -93,11 +57,7 @@ jobs:
     steps:
       - run:
           command: |
-            if [ -n "DOCKER_LOGIN" ]; then
-              docker login --username DOCKER_LOGIN --password DOCKER_PASSWORD
-            else
-              echo "Docker Hub credentials unavailable, pulling anonymously"
-            fi
+            docker login --username $DOCKER_LOGIN --password $DOCKER_PASSWORD
       - prometheus/publish_images:
           container_image_name: "time_exporter"
           login_variable: DOCKER_LOGIN
