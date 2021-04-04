@@ -11,7 +11,7 @@ Prometheus exporter for covering all possible timesync and time services.
 
 ## Installation and Usage
 
-The node_exporter listens on HTTP port 9818 by default. See the --help output for more options.
+The node_exporter listens on HTTP port 9818 by default. See the `--help` output for more options.
 
 ### Docker
 
@@ -25,7 +25,9 @@ docker run --rm -d \
 ### Binary
 
 ```bash
-./time_exporter
+export version=0.0.1
+curl -L https://github.com/dmitry-ee/time_exporter/releases/download/$version/time_exporter-$version.linux-amd64.tar.gz | tar -zxf -
+./time_exporter-$version.linux-amd64/time_exporter
 ```
 
 ## Collectors

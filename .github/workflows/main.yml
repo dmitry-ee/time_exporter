@@ -38,6 +38,7 @@ jobs:
           echo GOBIN=$(go env GOPATH)/bin >> $GITHUB_ENV
           echo PATH=$PATH:$GOPATH >> $GITHUB_ENV
           echo PATH=$PATH:$GOBIN >> $GITHUB_ENV
+          echo CURRENT_DATE=$(date +%Y-%m-%d) >> $GITHUB_ENV
 
       - name: Run test build
         run: |
@@ -74,7 +75,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: ${{ env.VERSION }}
           prerelease: false
-          title: v${{ env.VERSION }}
+          title: v${{ env.VERSION }} / ${{ env.CURRENT_DATE }}
           files: |
             .tarballs/*.tar.gz
         if: github.ref == 'refs/heads/master'
