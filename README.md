@@ -11,21 +11,32 @@ Prometheus exporter for covering all possible timesync and time services.
 
 ## Installation and Usage
 
-The node_exporter listens on HTTP port 9818 by default. See the `--help` output for more options.
+The time_exporter listens on HTTP port `9818` by default. See the `--help` output for more options.
 
 ### Docker
 
 ```bash
 docker run --rm -d \
+  --name time_exporter \
+  --net=host \
+  -v /var/run/chrony/chronyd.sock:/var/run/chrony/chronyd.sock:ro \
+  dmi7ry/time-exporter --log.level=debug --collector.chrony.address=127.0.0.1:323
+```
+or
+
+```bash
+docker run --rm -d \
   --name time-exporter \
   -p 9818:9818 \
-  dmi7ry/time-exporter
+  -v /var/run/chrony/chronyd.sock:/var/run/chrony/chronyd.sock:ro \
+  dmi7ry/time-exporter --log.level=debug --collector.chrony.address=/var/run/chrony/chronyd.sock
 ```
+
 
 ### Binary
 
 ```bash
-export version=0.0.1
+export version=0.0.2
 curl -L https://github.com/dmitry-ee/time_exporter/releases/download/$version/time_exporter-$version.linux-amd64.tar.gz | tar -zxf -
 ./time_exporter-$version.linux-amd64/time_exporter
 ```
@@ -34,10 +45,18 @@ curl -L https://github.com/dmitry-ee/time_exporter/releases/download/$version/ti
 
 All collectors are enabled by default
 
-**TBD**
+That could be disabled with both flags `--collector.disable-defaults` and if you want to get rid of the default `(go_|process_|promhttp_)` set `--web.disable-exporter-metrics`
 
 ### chrony
 Enables and disables with flag `--collector.chrony` and `--no-collector.chrony`
+
+#### `collector.chrony.address`
+The most important flag here: it could be socket path (`/var/run/chrony/chronyd.sock` by default) or `host:port` (chronyd is listening `127.0.0.1:323` by default).
+
+That could be useful to get the statistics even from outside the host itself
+
+#### `--collector.chrony.log-response-json`
+Log chronyd response in debug logging, could be helpful to get the real response for debugging purposes
 
 ### ntp
 Enables and disables with flag `--collector.ntp` and `--no-collector.ntp`

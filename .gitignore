@@ -1,2 +1,10 @@
 bin/*
 time_exporter
+*.log
+Dockerfile-*
+Justfile
+.build
+build
+sockets
+checker*
+nohup*

@@ -11,15 +11,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build linux
+// +build linux darwin
 // +build !nochrony
 
 package collector
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/facebookincubator/ntp/ntpcheck/checker"
@@ -34,7 +37,7 @@ const (
 )
 
 var (
-	chronySocketPath      = kingpin.Flag("collector.chrony.socket-path", "chronyd Socket Path").Default("/var/run/chrony/chronyd.sock").String()
+	chronyAddress         = kingpin.Flag("collector.chrony.address", "chronyd address (could be socket or host:port)").Default("/var/run/chrony/chronyd.sock").String()
 	chronyLogResponseJSON = kingpin.Flag("collector.chrony.log-response-json", "Log chrony socket response as json through the debug level").Default("false").Bool()
 )
 
@@ -177,10 +180,48 @@ func NewChronyCollector(logger log.Logger) (Collector, error) {
 	}, nil
 }
 
+func runChronyCheck(address string, log log.Logger) (*checker.NTPCheckResult, error) {
+	var ch checker.Runner
+	var err error
+	var conn net.Conn
+	timeout := 5 * time.Second
+	deadline := time.Now().Add(timeout)
+	if address == "" {
+		return nil, errors.New("address cannot be empty")
+	}
+	if strings.HasPrefix(address, "/") {
+		addr, err := net.ResolveUnixAddr("unixgram", address)
+		if err != nil {
+			return nil, err
+		}
+		conn, err = net.DialUnix("unixgram", nil, addr)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+		if err := conn.SetReadDeadline(deadline); err != nil {
+			return nil, err
+		}
+		level.Debug(log).Log("msg", "unix socket connection mode is used", "address", address)
+	} else {
+		conn, err = net.DialTimeout("udp", address, timeout)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+		if err := conn.SetReadDeadline(deadline); err != nil {
+			return nil, err
+		}
+		level.Debug(log).Log("msg", "udp connection mode is used", "address", address)
+	}
+	ch = checker.NewChronyCheck(conn)
+	return ch.Run()
+}
+
 func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
 	var b2i = map[bool]float64{false: 0, true: 1}
 
-	resp, err := checker.RunCheck(*chronySocketPath)
+	resp, err := runChronyCheck(*chronyAddress, c.logger)
 	// error handling
 	if err != nil {
 		level.Debug(c.logger).Log("msg", "request to chronyd failed", "err", err)
@@ -255,7 +296,7 @@ func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
 		ch <- c.sourcesPeerHPoll.mustNewConstMetric(float64(peer.HPoll), peerLabelValues...)
 		ch <- c.sourcesPeerPPoll.mustNewConstMetric(float64(peer.PPoll), peerLabelValues...)
 		ch <- c.sourcesPeerHeadway.mustNewConstMetric(float64(peer.Headway), peerLabelValues...)
-		ch <- c.sourcesPeerXleave.mustNewConstMetric(float64(peer.Xleave), peerLabelValues...)
+		ch <- c.sourcesPeerXleave.mustNewConstMetric(peer.Xleave, peerLabelValues...)
 
 		// refid parsing (hex as float)
 		refID, err := strconv.ParseInt(peer.RefID, 16, 64)
