@@ -9,6 +9,20 @@ Prometheus exporter for covering all possible timesync and time services.
 
 **NOTE:** Exporter is only tested on linux machines
 
+- [Time Exporter](#time-exporter)
+- [Sample](#sample)
+- [Installation and Usage](#installation-and-usage)
+    * [Docker](#docker)
+    * [Binary](#binary)
+- [Collectors](#collectors)
+    * [chrony](#chrony)
+    * [ntp](#ntp)
+    * [time](#time)
+    * [timex](#timex)
+    
+## Sample
+Before the actual usage take a look at the [metrics sample](metrics.txt)
+
 ## Installation and Usage
 
 The time_exporter listens on HTTP port `9818` by default. See the `--help` output for more options.

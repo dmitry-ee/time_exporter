@@ -69,6 +69,7 @@ jobs:
         run: |
           $GOBIN/promu crossbuild
           $GOBIN/promu crossbuild tarballs
+        if: github.ref == 'refs/heads/master'
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
