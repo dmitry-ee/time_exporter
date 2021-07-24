@@ -19,7 +19,6 @@ package collector
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -128,7 +127,7 @@ func init() {
 }
 
 func NewChronyCollector(logger log.Logger) (Collector, error) {
-	peerLabels := []string{"id", "addr"}
+	peerLabels := []string{"addr"}
 
 	return &chronyCollector{
 		trackingLI:          typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_leap_indicator"), "Tracking Leap Indicator. 0 - no warning, 3 - alarm", []string{"desc"}, nil), prometheus.GaugeValue},                                                                                                                                                                                                                                         //int
@@ -266,8 +265,8 @@ func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
 	}
 
 	// peers value subset
-	for id, peer := range resp.Peers {
-		peerLabelValues := []string{fmt.Sprintf("%d", id), peer.SRCAdr} //peer address appears as SRCAdr
+	for _, peer := range resp.Peers {
+		peerLabelValues := []string{peer.SRCAdr} //peer address appears as SRCAdr
 
 		//floats
 		ch <- c.sourcesPeerOffset.mustNewConstMetric(peer.Offset/1e3, peerLabelValues...) //initially in ms, see: https://github.com/facebookincubator/ntp/blob/81cb02c05f82f8c9cdf32e16f4ee02a3b05bfaf1/ntpcheck/checker/peer.go#L196
