@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  time-exporter:
+  - apiVersion: v2
+    appVersion: 0.0.3
+    created: "2021-11-22T10:38:13.950181758+01:00"
+    description: Time Exporter
+    digest: 6df64198080229a804046b4a320e11af57d52208359fd39727b734bea58b1e93
+    name: time-exporter
+    type: application
+    urls:
+    - time-exporter-0.1.1.tgz
+    version: 0.1.1
+generated: "2021-11-22T10:38:13.949249278+01:00"

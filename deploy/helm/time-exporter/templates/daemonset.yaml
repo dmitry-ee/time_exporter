@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "time-exporter.fullname" . }}
+  labels:
+    {{- include "time-exporter.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "time-exporter.selectorLabels" . | nindent 6 }}
+{{- with .Values.updateStrategy }}
+  updateStrategy:
+    {{ . | toYaml | nindent 4 }}
+{{- end }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "time-exporter.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "time-exporter.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+{{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+{{- end }}
+      hostNetwork: {{ .Values.hostNetwork }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --log.level={{ .Values.logging.level }}
+            - --log.format={{ .Values.logging.format }}
+            - --collector.disable-defaults
+{{- if not .Values.collectors.exporterMetrics }}
+            - --web.disable-exporter-metrics
+{{- end }}
+{{- if .Values.collectors.chrony.enabled }}
+            - --collector.chrony
+            - --collector.chrony.address={{ .Values.collectors.chrony.address }}
+{{- end }}
+{{- if .Values.collectors.ntp.enabled }}
+            - --collector.ntp
+{{- end }}
+{{- if .Values.collectors.time.enabled }}
+            - --collector.time
+{{- end }}
+{{- if .Values.collectors.timex.enabled }}
+            - --collector.timex
+{{- end }}
+{{- range $key, $value := .Values.extraArgs }}
+            - --{{ $key }}={{ $value }}
+{{- end }}
+          ports:
+            - name: http
+              containerPort: 9818
+              protocol: TCP
+{{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+{{- end }}
+{{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+{{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- if and .Values.collectors.chrony.enabled (eq "/" (substr 0 1 .Values.collectors.chrony.address)) }}
+          volumeMounts:
+            - name: chrony-socket
+              mountPath: {{ .Values.collectors.chrony.address }}
+              readOnly: true
+{{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- if and .Values.collectors.chrony.enabled (eq "/" (substr 0 1 .Values.collectors.chrony.address)) }}
+      volumes:
+        - name: chrony-socket
+          hostPath:
+            path: {{ .Values.collectors.chrony.hostPath }}
+            type: Socket
+{{- end }}
