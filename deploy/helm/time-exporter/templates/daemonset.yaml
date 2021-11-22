@@ -48,6 +48,9 @@ spec:
 {{- if .Values.collectors.chrony.enabled }}
             - --collector.chrony
             - --collector.chrony.address={{ .Values.collectors.chrony.address }}
+{{- if .Values.collectors.chrony.logResponse }}
+            - --collector.chrony.log-response-json
+{{- end }}
 {{- end }}
 {{- if .Values.collectors.ntp.enabled }}
             - --collector.ntp
