@@ -18,17 +18,19 @@ package collector
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/facebookincubator/ntp/ntpcheck/checker"
+	"github.com/facebookincubator/ntp/protocol/chrony"
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
+	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/sirupsen/logrus"
+	"github.com/ulule/deepcopier"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"net"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/facebookincubator/ntp/ntpcheck/checker"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
-	"github.com/prometheus/client_golang/prometheus"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -36,9 +38,73 @@ const (
 )
 
 var (
-	chronyAddress         = kingpin.Flag("collector.chrony.address", "chronyd address (could be socket or host:port)").Default("/var/run/chrony/chronyd.sock").String()
-	chronyLogResponseJSON = kingpin.Flag("collector.chrony.log-response-json", "Log chrony socket response as json through the debug level").Default("false").Bool()
+	chronyAddress         = kingpin.Flag("collector.chrony.address", "chronyd address (could be socket or host:port)").Default("127.0.0.1:323").String()
+	chronyLogResponseJSON = kingpin.Flag("collector.chrony.log-response-json", "Log chrony socket response as json through the debug level").Default("true").Bool()
 )
+
+type NTPCheckResultE struct {
+	// parsed from SystemStatusWord
+	LI          uint8					`deepcopier:"field:LI"`
+	LIDesc      string					`deepcopier:"field:LIDesc"`
+	ClockSource string					`deepcopier:"field:ClockSource"`
+	Correction  float64					`deepcopier:"field:Correction"`
+	Event       string					`deepcopier:"field:Event"`
+	EventCount  uint8					`deepcopier:"field:EventCount"`
+	// data parsed from System Variables
+	SysVars *checker.SystemVariables	`deepcopier:"field:SysVars"`
+	// map of peers with data from PeerStatusWord and Peer Variables
+	Peers map[uint16]*PeerE				`deepcopier:"field:Peers"`
+}
+
+type PeerE struct {
+	// from PeerStatusWord
+	Configured   bool	`deepcopier:"field:Configured"`
+	AuthPossible bool	`deepcopier:"field:AuthPossible"`
+	Authentic    bool	`deepcopier:"field:Authentic"`
+	Reachable    bool	`deepcopier:"field:Reachable"`
+	Broadcast    bool	`deepcopier:"field:Broadcast"`
+	Selection    uint8	`deepcopier:"field:Selection"`
+	Condition    string	`deepcopier:"field:Condition"`
+	// from variables
+	SRCAdr     string	`deepcopier:"field:SRCAdr"`
+	SRCPort    int		`deepcopier:"field:SRCPort"`
+	DSTAdr     string	`deepcopier:"field:DSTAdr"`
+	DSTPort    int		`deepcopier:"field:DSTPort"`
+	Leap       int		`deepcopier:"field:Leap"`
+	Stratum    int		`deepcopier:"field:Stratum"`
+	Precision  int		`deepcopier:"field:Precision"`
+	RootDelay  float64	`deepcopier:"field:RootDelay"`
+	RootDisp   float64	`deepcopier:"field:RootDisp"`
+	RefID      string	`deepcopier:"field:RefID"`
+	RefTime    string	`deepcopier:"field:RefTime"`
+	Reach      uint8	`deepcopier:"field:Reach"`
+	Unreach    int		`deepcopier:"field:Unreach"`
+	HMode      int		`deepcopier:"field:HMode"`
+	PMode      int		`deepcopier:"field:PMode"`
+	HPoll      int		`deepcopier:"field:HPoll"`
+	PPoll      int		`deepcopier:"field:PPoll"`
+	Headway    int		`deepcopier:"field:Headway"`
+	Flash      uint16	`deepcopier:"field:Flash"`
+	Flashers   []string	`deepcopier:"field:Flashers"`
+	Offset     float64	`deepcopier:"field:Offset"`
+	Delay      float64	`deepcopier:"field:Delay"`
+	Dispersion float64	`deepcopier:"field:Dispersion"`
+	Jitter     float64	`deepcopier:"field:Jitter"`
+	Xleave     float64	`deepcopier:"field:Xleave"`
+	Rec        string	`deepcopier:"field:Rec"`
+	FiltDelay  string	`deepcopier:"field:FiltDelay"`
+	FiltOffset string	`deepcopier:"field:FiltOffset"`
+	FiltDisp   string	`deepcopier:"field:FiltDisp"`
+	// from sourceStats
+	NSamples   		uint32
+	NRuns 			uint32
+	SpanSeconds 	uint32
+	StdDev 			float64
+	ResidFreq 		float64
+	SkewFreq 		float64
+	EstOffset 		float64
+	EstOffsetError 	float64
+}
 
 type chronyCollector struct {
 
@@ -100,21 +166,22 @@ type chronyCollector struct {
 	sourcesPeerHeadway, //int
 	// sourcesPeerFlash, //int
 	sourcesPeerOffset, //float
-	sourcesPeerDelay, //float
-	sourcesPeerDispersion, //float
+	//sourcesPeerDelay, //float
+	//sourcesPeerDispersion, //float
 	sourcesPeerJitter, //float
 	sourcesPeerXleave, //float
 	// sourcesPeerRec, //str
 	// sourcesPeerFiltDelay, //str
 	// sourcesPeerFiltOffset, //str
 	// sourcesPeerFiltDisp, //str
-
-	// serverstats response
-	serverStatsPacketsReceived, //int
-	serverStatsPacketsDropped, //int
-
-	// incomplete flag
-	ntpIncomplete, //bool -> parsed as 1/0
+	sourceStatsNSamples, //int
+	sourceStatsNRuns, //int
+	sourceStatsSpanSeconds, //int
+	sourceStatsStdDev, //float
+	sourceStatsResidFreq, //float
+	sourceStatsSkewFreq, //float
+	sourceStatsEstOffset, //float
+	sourceStatsEstOffsetError, //float
 
 	// manually added metrics
 	sourcesPeerCount typedDesc //int
@@ -123,55 +190,59 @@ type chronyCollector struct {
 }
 
 func init() {
-	registerCollector("chrony", defaultEnabled, NewChronyCollector)
+	registerCollector("chrony", true, NewChronyCollector)
 }
 
 func NewChronyCollector(logger log.Logger) (Collector, error) {
 	peerLabels := []string{"addr"}
 
 	return &chronyCollector{
-		trackingLI:          typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_leap_indicator"), "Tracking Leap Indicator. 0 - no warning, 3 - alarm", []string{"desc"}, nil), prometheus.GaugeValue},                                                                                                                                                                                                                                         //int
-		trackingClockSource: typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_clock_source"), "Clock Source, str value in 'src' label, value always 1.", []string{"src"}, nil), prometheus.GaugeValue},                                                                                                                                                                                                                                       //int
-		trackingCorrection:  typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_correction"), "Current correction value.", nil, nil), prometheus.GaugeValue},                                                                                                                                                                                                                                                                                   //float
-		trackingStratum:     typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_stratum"), "The stratum indicates how many hops away from a computer with an attached reference clock we are.", nil, nil), prometheus.GaugeValue},                                                                                                                                                                                                              //int
-		trackingPrecision:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_precision"), "Current precision.", nil, nil), prometheus.GaugeValue},                                                                                                                                                                                                                                                                                           //int
-		trackingRootDelay:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_root_delay"), "Total of the network path delays to the stratum-1 computer from which the computer is ultimately synchronized.", nil, nil), prometheus.GaugeValue},                                                                                                                                                                                              //float
-		trackingRootDisp:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_root_disp"), "Total dispersion accumulated through all the computers back to the stratum-1 computer from which the computer is ultimately synchronized.", nil, nil), prometheus.GaugeValue},                                                                                                                                                                    //float
-		trackingRefID:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_ref_id"), "Encoded address of connected machine (if available).", nil, nil), prometheus.GaugeValue},                                                                                                                                                                                                                                                            //float
-		trackingRefTime:     typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_ref_time"), "The time (UTC) at which the last measurement from the reference source was processed.", nil, nil), prometheus.GaugeValue},                                                                                                                                                                                                                         //float
-		trackingOffset:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_offset"), "The estimated local offset on the last clock update.", nil, nil), prometheus.GaugeValue},                                                                                                                                                                                                                                                            //float
+		trackingLI:          typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_leap_indicator"), "Tracking Leap Indicator. 0 - no warning, 3 - alarm", []string{"desc"}, nil), prometheus.GaugeValue},                     //int
+		trackingClockSource: typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_clock_source"), "Clock Source, str value in 'src' label, value always 1.", []string{"src"}, nil), prometheus.GaugeValue},                   //int
+		trackingCorrection:  typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_correction"), "Current correction value.", nil, nil), prometheus.GaugeValue},                                                               //float
+		trackingStratum:     typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_stratum"), "The stratum indicates how many hops away from a computer with an attached reference clock we are.", nil, nil), prometheus.GaugeValue},                                                                                                    //int
+		trackingPrecision:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_precision"), "Current precision.", nil, nil), prometheus.GaugeValue},                                                                       //int
+		trackingRootDelay:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_root_delay"), "Total of the network path delays to the stratum-1 computer from which the computer is ultimately synchronized.", nil, nil), prometheus.GaugeValue},                                                                                    //float
+		trackingRootDisp:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_root_disp"), "Total dispersion accumulated through all the computers back to the stratum-1 computer from which the computer is ultimately synchronized.", nil, nil), prometheus.GaugeValue},                                                          //float
+		trackingRefID:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_ref_id"), "Encoded address of connected machine (if available).", nil, nil), prometheus.GaugeValue},                                        //float
+		trackingRefTime:     typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_ref_time"), "The time (UTC) at which the last measurement from the reference source was processed.", nil, nil), prometheus.GaugeValue},     //float
+		trackingOffset:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_offset"), "The estimated local offset on the last clock update.", nil, nil), prometheus.GaugeValue},                                        //float
 		trackingFrequency:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "tracking_frequency"), "The rate by which the system’s clock would be wrong if chronyd was not correcting it. It is expressed in ppm (parts per million). For example, a value of 1 ppm would mean that when the system’s clock thinks it has advanced 1 second, it has actually advanced by 1.000001 seconds relative to true time.", nil, nil), prometheus.GaugeValue}, //float
 
 		sourcesPeerSelection:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_selection"), "State of the source (int code of *|+|-|?|x|~). str value in 'desc' label. See: https://github.com/facebookincubator/ntp/blob/master/protocol/chrony/packet.go#L81", append(peerLabels, "desc"), nil), prometheus.GaugeValue}, //int
-		sourcesPeerOffset:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_offset"), "Offset of last update.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                               //float
-		sourcesPeerDelay:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_delay"), "Delay to peer.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                                        //float
-		sourcesPeerDispersion:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_dispersion"), "Peer dispersion.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                                 //float
-		sourcesPeerJitter:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_jitter"), "Peer jitter.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                                         //float
-		sourcesPeerRefID:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_ref_id"), "Peer refId (see tracking_ref_id).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                    //float
-		sourcesPeerRefTime:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_ref_time"), "Peer refTime (see tracking_ref_time).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                              //float
-		sourcesPeerRootDelay:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_root_delay"), "Peer root delay (see tracking_root_delay).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                       //float
-		sourcesPeerRootDisp:     typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_root_disp"), "Peer root dispersion (see tracking_root_disp).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                    //float
-		sourcesPeerConfigured:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_peer_configured"), "Configured flag (1|0).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                      //bool
-		sourcesPeerAuthPossible: typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_auth_possible"), "AuthPosible flag (1|0).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                       //bool
-		sourcesPeerAuthentic:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_authentic"), "Authenticatd flag (0|1).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                          //bool
-		sourcesPeerReachable:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_reachable"), "Reachability (1 if sourceReply Reachability flag == 255 else 0).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                  //bool
-		sourcesPeerBroadcast:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_broadcast"), "Broadcast flag (1|0).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                             //bool
-		sourcesPeerLeap:         typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_leap"), "Peer leap value (see tracking_leap_indicator).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                         //int
-		sourcesPeerStratum:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_stratum"), "Peer startum (see tracking_stratum).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                //int
-		sourcesPeerPrecision:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_precision"), "Peer precision (see tracking_precision).", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                          //int
-		sourcesPeerReach:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_reach"), "Int value of sourceReply Reachability flag (see sources_peer_reachable).", peerLabels, nil), prometheus.GaugeValue},                                                                                                              //int
-		sourcesPeerUnreach:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_unreach"), "Unreach flag from .", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                                 //int
-		sourcesPeerHMode:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_hmode"), "Hmode value from source data.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                         //int
-		sourcesPeerPMode:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_pmode"), "Pmode value from source data.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                         //int
-		sourcesPeerHPoll:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_hpoll"), "Hpoll value from source data.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                         //int
-		sourcesPeerPPoll:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_ppoll"), "Ppoll value from source data.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                         //int
-		sourcesPeerHeadway:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_headway"), "Headway value from source data.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                     //int
-		sourcesPeerXleave:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_xleave"), "Xleave value from source data.", peerLabels, nil), prometheus.GaugeValue},                                                                                                                                                       //float
+		sourcesPeerOffset:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_offset"), "Offset of last update.", peerLabels, nil), prometheus.GaugeValue},                                                     //float
+		//sourcesPeerDelay:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_delay"), "Delay to peer.", peerLabels, nil), prometheus.GaugeValue},                                                              //float
+		//sourcesPeerDispersion:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_dispersion"), "Peer dispersion.", peerLabels, nil), prometheus.GaugeValue},                                                       //float
+		sourcesPeerJitter:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_jitter"), "Peer jitter.", peerLabels, nil), prometheus.GaugeValue},                                                               //float
+		sourcesPeerRefID:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_ref_id"), "Peer refId (see tracking_ref_id).", peerLabels, nil), prometheus.GaugeValue},                                          //float
+		sourcesPeerRefTime:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_ref_time"), "Peer refTime (see tracking_ref_time).", peerLabels, nil), prometheus.GaugeValue},                                    //float
+		sourcesPeerRootDelay:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_root_delay"), "Peer root delay (see tracking_root_delay).", peerLabels, nil), prometheus.GaugeValue},                             //float
+		sourcesPeerRootDisp:     typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_root_disp"), "Peer root dispersion (see tracking_root_disp).", peerLabels, nil), prometheus.GaugeValue},                          //float
+		sourcesPeerConfigured:   typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_peer_configured"), "Configured flag (1|0).", peerLabels, nil), prometheus.GaugeValue},                                            //bool
+		sourcesPeerAuthPossible: typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_auth_possible"), "AuthPosible flag (1|0).", peerLabels, nil), prometheus.GaugeValue},                                             //bool
+		sourcesPeerAuthentic:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_authentic"), "Authenticatd flag (0|1).", peerLabels, nil), prometheus.GaugeValue},                                                //bool
+		sourcesPeerReachable:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_reachable"), "Reachability (1 if sourceReply Reachability flag == 255 else 0).", peerLabels, nil), prometheus.GaugeValue},        //bool
+		sourcesPeerBroadcast:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_broadcast"), "Broadcast flag (1|0).", peerLabels, nil), prometheus.GaugeValue},                                                   //bool
+		sourcesPeerLeap:         typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_leap"), "Peer leap value (see tracking_leap_indicator).", peerLabels, nil), prometheus.GaugeValue},                               //int
+		sourcesPeerStratum:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_stratum"), "Peer startum (see tracking_stratum).", peerLabels, nil), prometheus.GaugeValue},                                      //int
+		sourcesPeerPrecision:    typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_precision"), "Peer precision (see tracking_precision).", peerLabels, nil), prometheus.GaugeValue},                                //int
+		sourcesPeerReach:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_reach"), "Int value of sourceReply Reachability flag (see sources_peer_reachable).", peerLabels, nil), prometheus.GaugeValue},    //int
+		sourcesPeerUnreach:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_unreach"), "Unreach flag from .", peerLabels, nil), prometheus.GaugeValue},                                                       //int
+		sourcesPeerHMode:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_hmode"), "Hmode value from source data.", peerLabels, nil), prometheus.GaugeValue},                                               //int
+		sourcesPeerPMode:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_pmode"), "Pmode value from source data.", peerLabels, nil), prometheus.GaugeValue},                                               //int
+		sourcesPeerHPoll:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_hpoll"), "Hpoll value from source data.", peerLabels, nil), prometheus.GaugeValue},                                               //int
+		sourcesPeerPPoll:        typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_ppoll"), "Ppoll value from source data.", peerLabels, nil), prometheus.GaugeValue},                                               //int
+		sourcesPeerHeadway:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_headway"), "Headway value from source data.", peerLabels, nil), prometheus.GaugeValue},                                           //int
+		sourcesPeerXleave:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_xleave"), "Xleave value from source data.", peerLabels, nil), prometheus.GaugeValue},                                             //float
 
-		serverStatsPacketsReceived: typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "server_stats_packets_received"), "Packets received (only available if serverstats request was succeeded).", nil, nil), prometheus.GaugeValue}, //int
-		serverStatsPacketsDropped:  typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "server_stats_packets_dropped"), "Packets dropped (only available if serverstats request was succeeded).", nil, nil), prometheus.GaugeValue},   //int
-
-		ntpIncomplete: typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "ntp_incomplete"), "0 if some of ntpData requests was failed (1|0).", nil, nil), prometheus.GaugeValue}, //bool
+		sourceStatsNSamples:		typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_nsamples_total"), "Number of sample points in measurement set.", peerLabels, nil), prometheus.GaugeValue},                                               //int
+		sourceStatsNRuns:        	typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_nruns"), "Number of residual runs with same sign.", peerLabels, nil), prometheus.GaugeValue},                                               //int
+		sourceStatsSpanSeconds:     typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_span_seconds"), "Length of measurement set (time).", peerLabels, nil), prometheus.GaugeValue},                                             //float
+		sourceStatsStdDev:       	typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_std_dev_seconds"), "Est. sample standard deviation.", peerLabels, nil), prometheus.GaugeValue},                                             //float
+		sourceStatsResidFreq:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_residential_freq"), "Est. clock freq error (ppm).", peerLabels, nil), prometheus.GaugeValue},                                             //float
+		sourceStatsSkewFreq:       	typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_skew_freq"), "Est. error in freq.", peerLabels, nil), prometheus.GaugeValue},                                             //float
+		sourceStatsEstOffset:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_est_offset_seconds"), "Est. offset on the samples.", peerLabels, nil), prometheus.GaugeValue},                                             //float
+		sourceStatsEstOffsetError:  typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_est_offset_error_seconds"), "Est. error in offset.", peerLabels, nil), prometheus.GaugeValue},                                             //float
 
 		sourcesPeerCount: typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_count"), "Numbers of total peers.", nil, nil), prometheus.GaugeValue}, //int
 
@@ -179,42 +250,90 @@ func NewChronyCollector(logger log.Logger) (Collector, error) {
 	}, nil
 }
 
-func runChronyCheck(address string, log log.Logger) (*checker.NTPCheckResult, error) {
-	var ch checker.Runner
+func runChronyCheck(address string, log log.Logger) (*NTPCheckResultE, error) {
+	//var chronyClient *chrony.Client
+	var ch *checker.ChronyCheck
 	var err error
 	var conn net.Conn
+
 	timeout := 5 * time.Second
 	deadline := time.Now().Add(timeout)
+
 	if address == "" {
 		return nil, errors.New("address cannot be empty")
 	}
 	if strings.HasPrefix(address, "/") {
-		addr, err := net.ResolveUnixAddr("unixgram", address)
-		if err != nil {
-			return nil, err
-		}
-		conn, err = net.DialUnix("unixgram", nil, addr)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-		if err := conn.SetReadDeadline(deadline); err != nil {
-			return nil, err
-		}
-		level.Debug(log).Log("msg", "unix socket connection mode is used", "address", address)
+		errors.New("Connection through the socket is not supported (support is off since 0.0.6 due to unresolved issue)")
+		//addr, err := net.ResolveUnixAddr("unix", address)
+		//if err != nil {
+		//	return nil, err
+		//}
+		//conn, err = net.DialUnix("unix", nil, addr)
+		//if err != nil {
+		//	return nil, err
+		//}
+		//level.Debug(log).Log("msg", "unix socket connection mode is used", "address", address)
 	} else {
-		conn, err = net.DialTimeout("udp", address, timeout)
+		addr, err := net.ResolveUDPAddr("udp", address)
 		if err != nil {
 			return nil, err
 		}
-		defer conn.Close()
-		if err := conn.SetReadDeadline(deadline); err != nil {
+		conn, err = net.DialUDP("udp", nil, addr)
+		if err != nil {
 			return nil, err
 		}
 		level.Debug(log).Log("msg", "udp connection mode is used", "address", address)
 	}
+	defer conn.Close()
+	if err := conn.SetReadDeadline(deadline); err != nil {
+		return nil, err
+	}
+
 	ch = checker.NewChronyCheck(conn)
-	return ch.Run()
+
+	checkResult, err := ch.Run()
+	if err != nil {
+		return nil, err
+	}
+	// dirty conversion from NTPCheckResult to NTPCheckResultE (with additional SourcesStats fields)
+	//checkResultE := (*NTPCheckResultE)(unsafe.Pointer(checkResult))
+	checkResultE := &NTPCheckResultE{}
+	err = deepcopier.Copy(checkResult).To(checkResultE)
+	if err != nil {
+		errors.New("can't make a deepcopy of checkResult")
+	}
+	checkResultE.Peers = make(map[uint16]*PeerE)
+
+	for pid := range checkResult.Peers {
+		peerInfo := &PeerE{}
+		err = deepcopier.Copy(checkResult.Peers[pid]).To(peerInfo)
+		if err != nil {
+			errors.New("can't make a deepcopy of peerInfo")
+		}
+		checkResultE.Peers[pid] = peerInfo
+
+		sourceStatsReq := chrony.NewSourceStatsPacket(int32(pid))
+		response, err := ch.Client.Communicate(sourceStatsReq)
+		if err != nil {
+			return nil, errors.Wrap(err, "error during sourceStats request")
+		}
+		sourceStats, ok := response.(*chrony.ReplySourceStats)
+		if !ok {
+			return nil, errors.Wrap(err, "cannot cast response into ReplySourceStats")
+		}
+		logrus.Debugf("%#v", sourceStats)
+		// sets new fields as per queried sourceStats
+		peerInfo.NSamples = sourceStats.NSamples
+		peerInfo.NRuns = sourceStats.NRuns
+		peerInfo.SpanSeconds = sourceStats.SpanSeconds
+		peerInfo.StdDev = sourceStats.StandardDeviation
+		peerInfo.ResidFreq = sourceStats.ResidFreqPPM
+		peerInfo.SkewFreq = sourceStats.SkewPPM
+		peerInfo.EstOffset = sourceStats.EstimatedOffset
+		peerInfo.EstOffsetError = sourceStats.EstimatedOffsetErr
+	}
+
+	return checkResultE, nil
 }
 
 func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
@@ -223,7 +342,7 @@ func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
 	resp, err := runChronyCheck(*chronyAddress, c.logger)
 	// error handling
 	if err != nil {
-		level.Debug(c.logger).Log("msg", "request to chronyd failed", "err", err)
+		level.Error(c.logger).Log("msg", "request to chronyd failed", "err", err)
 		return ErrNoData
 	}
 
@@ -270,11 +389,17 @@ func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
 
 		//floats
 		ch <- c.sourcesPeerOffset.mustNewConstMetric(peer.Offset/1e3, peerLabelValues...) //initially in ms, see: https://github.com/facebookincubator/ntp/blob/81cb02c05f82f8c9cdf32e16f4ee02a3b05bfaf1/ntpcheck/checker/peer.go#L196
-		ch <- c.sourcesPeerDelay.mustNewConstMetric(peer.Delay/1e3, peerLabelValues...)
-		ch <- c.sourcesPeerDispersion.mustNewConstMetric(peer.Dispersion/1e3, peerLabelValues...)
+		//ch <- c.sourcesPeerDelay.mustNewConstMetric(peer.Delay/1e3, peerLabelValues...)
+		//ch <- c.sourcesPeerDispersion.mustNewConstMetric(peer.Dispersion/1e3, peerLabelValues...)
 		ch <- c.sourcesPeerJitter.mustNewConstMetric(peer.Jitter/1e3, peerLabelValues...)
 		ch <- c.sourcesPeerRootDelay.mustNewConstMetric(peer.RootDelay/1e3, peerLabelValues...)
 		ch <- c.sourcesPeerRootDisp.mustNewConstMetric(peer.RootDisp/1e3, peerLabelValues...)
+		//source stats
+		ch <- c.sourceStatsStdDev.mustNewConstMetric(peer.StdDev/1e3, peerLabelValues...)
+		ch <- c.sourceStatsEstOffset.mustNewConstMetric(peer.EstOffset/1e3, peerLabelValues...)
+		ch <- c.sourceStatsEstOffsetError.mustNewConstMetric(peer.EstOffsetError/1e3, peerLabelValues...)
+		ch <- c.sourceStatsResidFreq.mustNewConstMetric(peer.ResidFreq, peerLabelValues...)
+		ch <- c.sourceStatsSkewFreq.mustNewConstMetric(peer.SkewFreq, peerLabelValues...)
 
 		//booleans
 		ch <- c.sourcesPeerConfigured.mustNewConstMetric(b2i[peer.Configured], peerLabelValues...)
@@ -296,6 +421,10 @@ func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
 		ch <- c.sourcesPeerPPoll.mustNewConstMetric(float64(peer.PPoll), peerLabelValues...)
 		ch <- c.sourcesPeerHeadway.mustNewConstMetric(float64(peer.Headway), peerLabelValues...)
 		ch <- c.sourcesPeerXleave.mustNewConstMetric(peer.Xleave, peerLabelValues...)
+		//source stats
+		ch <- c.sourceStatsNSamples.mustNewConstMetric(float64(peer.NSamples), peerLabelValues...)
+		ch <- c.sourceStatsNRuns.mustNewConstMetric(float64(peer.NRuns), peerLabelValues...)
+		ch <- c.sourceStatsSpanSeconds.mustNewConstMetric(float64(peer.SpanSeconds), peerLabelValues...)
 
 		// refid parsing (hex as float)
 		refID, err := strconv.ParseInt(peer.RefID, 16, 64)
@@ -312,105 +441,8 @@ func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
 		}
 	}
 
-	// server stats value subset
-	if resp.ServerStats != nil {
-		ch <- c.serverStatsPacketsReceived.mustNewConstMetric(float64(resp.ServerStats.PacketsReceived))
-		ch <- c.serverStatsPacketsDropped.mustNewConstMetric(float64(resp.ServerStats.PacketsDropped))
-	}
-	// incomplete flag
-	ch <- c.ntpIncomplete.mustNewConstMetric(b2i[resp.Incomplete])
-
 	//manually added metrics
 	ch <- c.sourcesPeerCount.mustNewConstMetric(float64(len(resp.Peers)))
 
 	return nil
 }
-
-/* chronyChecker response sample
-{
-  "LI": 0,
-  "LIDesc": "none",
-  "ClockSource": "ntp",
-  "Correction": -9.862084880296607e-06,
-  "Event": "clock_sync",
-  "EventCount": 0,
-  "SysVars": {
-    "Version": "",
-    "Processor": "",
-    "System": "",
-    "Leap": 0,
-    "Stratum": 2,
-    "Precision": 0,
-    "RootDelay": 11.23967207968235,
-    "RootDisp": 21883.459091186523,
-    "Peer": 0,
-    "TC": 0,
-    "MinTC": 0,
-    "Clock": "",
-    "RefID": "51D32512",
-    "RefTime": "2021-03-26 14:55:33.784183547 +0000 UTC",
-    "Offset": 6.212211214005947,
-    "SysJitter": 0,
-    "Frequency": -1923.4349365234375,
-    "ClkWander": 0,
-    "ClkJitter": 0,
-    "Tai": 0
-  },
-  "Peers": {
-    "0": {
-      "Configured": true,
-      "AuthPossible": false,
-      "Authentic": false,
-      "Reachable": false,
-      "Broadcast": false,
-      "Selection": 0,
-      "Condition": "unreach",
-      "SRCAdr": "2001:67c:380:120::33",
-      "SRCPort": 0,
-      "DSTAdr": "::",
-      "DSTPort": 0,
-      "Leap": 0,
-      "Stratum": 0,
-      "Precision": 0,
-      "RootDelay": 0,
-      "RootDisp": 0,
-      "RefID": "00000000",
-      "RefTime": "1970-01-01 00:00:00 +0000 UTC",
-      "Reach": 0,
-      "Unreach": 0,
-      "HMode": 0,
-      "PMode": 0,
-      "HPoll": 0,
-      "PPoll": 0,
-      "Headway": 0,
-      "Flash": 0,
-      "Flashers": [
-        "pkt_auth",
-        "tst_max_delay",
-        "tst_delay_ratio",
-        "pkt_dup",
-        "pkt_invalid",
-        "pkt_stratum",
-        "pkt_header",
-        "tst_delay_dev_ration",
-        "tst_sync_loop",
-        "pkt_bogus"
-      ],
-      "Offset": 0,
-      "Delay": 0,
-      "Dispersion": 0,
-      "Jitter": 0,
-      "Xleave": 0,
-      "Rec": "",
-      "FiltDelay": "",
-      "FiltOffset": "",
-      "FiltDisp": ""
-    }
-	},
-  "ServerStats": {
-    "ntp.server.packets_received": 0,
-    "ntp.server.packets_dropped": 0
-  },
-  "Incomplete": false
-}
-*/

@@ -29,7 +29,7 @@ type timeCollector struct {
 }
 
 func init() {
-	registerCollector("time", defaultEnabled, NewTimeCollector)
+	registerCollector("time", true, NewTimeCollector)
 }
 
 // NewTimeCollector returns a new Collector exposing the current system time in

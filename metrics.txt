@@ -1,348 +1,241 @@
-# HELP time_chrony_ntp_incomplete 0 if some of ntpData requests was failed (1|0).
-# TYPE time_chrony_ntp_incomplete gauge
-time_chrony_ntp_incomplete 1
+# HELP promhttp_metric_handler_errors_total Total number of internal errors encountered by the promhttp metric handler.
+# TYPE promhttp_metric_handler_errors_total counter
+promhttp_metric_handler_errors_total{cause="encoding"} 0
+promhttp_metric_handler_errors_total{cause="gathering"} 0
 # HELP time_chrony_sources_peer_auth_possible AuthPosible flag (1|0).
 # TYPE time_chrony_sources_peer_auth_possible gauge
-time_chrony_sources_peer_auth_possible{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_auth_possible{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_auth_possible{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_auth_possible{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_auth_possible{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_auth_possible{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_auth_possible{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_auth_possible{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_auth_possible{addr="194.190.168.1"} 0
+time_chrony_sources_peer_auth_possible{addr="80.249.145.122"} 0
+time_chrony_sources_peer_auth_possible{addr="91.209.94.10"} 0
+time_chrony_sources_peer_auth_possible{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_authentic Authenticatd flag (0|1).
 # TYPE time_chrony_sources_peer_authentic gauge
-time_chrony_sources_peer_authentic{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_authentic{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_authentic{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_authentic{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_authentic{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_authentic{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_authentic{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_authentic{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_authentic{addr="194.190.168.1"} 0
+time_chrony_sources_peer_authentic{addr="80.249.145.122"} 0
+time_chrony_sources_peer_authentic{addr="91.209.94.10"} 0
+time_chrony_sources_peer_authentic{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_broadcast Broadcast flag (1|0).
 # TYPE time_chrony_sources_peer_broadcast gauge
-time_chrony_sources_peer_broadcast{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_broadcast{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_broadcast{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_broadcast{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_broadcast{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_broadcast{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_broadcast{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_broadcast{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_broadcast{addr="194.190.168.1"} 0
+time_chrony_sources_peer_broadcast{addr="80.249.145.122"} 0
+time_chrony_sources_peer_broadcast{addr="91.209.94.10"} 0
+time_chrony_sources_peer_broadcast{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_count Numbers of total peers.
 # TYPE time_chrony_sources_peer_count gauge
-time_chrony_sources_peer_count 8
+time_chrony_sources_peer_count 4
 # HELP time_chrony_sources_peer_delay Delay to peer.
 # TYPE time_chrony_sources_peer_delay gauge
-time_chrony_sources_peer_delay{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_delay{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_delay{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_delay{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_delay{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_delay{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_delay{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_delay{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_delay{addr="194.190.168.1"} 0
+time_chrony_sources_peer_delay{addr="80.249.145.122"} 0
+time_chrony_sources_peer_delay{addr="91.209.94.10"} 0
+time_chrony_sources_peer_delay{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_dispersion Peer dispersion.
 # TYPE time_chrony_sources_peer_dispersion gauge
-time_chrony_sources_peer_dispersion{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_dispersion{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_dispersion{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_dispersion{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_dispersion{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_dispersion{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_dispersion{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_dispersion{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_dispersion{addr="194.190.168.1"} 0
+time_chrony_sources_peer_dispersion{addr="80.249.145.122"} 0
+time_chrony_sources_peer_dispersion{addr="91.209.94.10"} 0
+time_chrony_sources_peer_dispersion{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_headway Headway value from source data.
 # TYPE time_chrony_sources_peer_headway gauge
-time_chrony_sources_peer_headway{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_headway{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_headway{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_headway{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_headway{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_headway{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_headway{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_headway{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_headway{addr="194.190.168.1"} 0
+time_chrony_sources_peer_headway{addr="80.249.145.122"} 0
+time_chrony_sources_peer_headway{addr="91.209.94.10"} 0
+time_chrony_sources_peer_headway{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_hmode Hmode value from source data.
 # TYPE time_chrony_sources_peer_hmode gauge
-time_chrony_sources_peer_hmode{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_hmode{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_hmode{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_hmode{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_hmode{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_hmode{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_hmode{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_hmode{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_hmode{addr="194.190.168.1"} 0
+time_chrony_sources_peer_hmode{addr="80.249.145.122"} 0
+time_chrony_sources_peer_hmode{addr="91.209.94.10"} 0
+time_chrony_sources_peer_hmode{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_hpoll Hpoll value from source data.
 # TYPE time_chrony_sources_peer_hpoll gauge
-time_chrony_sources_peer_hpoll{addr="185.120.22.14",id="5"} 6
-time_chrony_sources_peer_hpoll{addr="2001:67c:1560:8003::c7",id="0"} 6
-time_chrony_sources_peer_hpoll{addr="2001:67c:1560:8003::c8",id="1"} 6
-time_chrony_sources_peer_hpoll{addr="2a01:4f8:141:164::2",id="6"} 6
-time_chrony_sources_peer_hpoll{addr="72.30.35.89",id="4"} 6
-time_chrony_sources_peer_hpoll{addr="81.169.199.94",id="7"} 6
-time_chrony_sources_peer_hpoll{addr="91.189.89.198",id="2"} 6
-time_chrony_sources_peer_hpoll{addr="91.189.91.157",id="3"} 6
+time_chrony_sources_peer_hpoll{addr="194.190.168.1"} 6
+time_chrony_sources_peer_hpoll{addr="80.249.145.122"} 6
+time_chrony_sources_peer_hpoll{addr="91.209.94.10"} 6
+time_chrony_sources_peer_hpoll{addr="94.231.123.187"} 6
 # HELP time_chrony_sources_peer_jitter Peer jitter.
 # TYPE time_chrony_sources_peer_jitter gauge
-time_chrony_sources_peer_jitter{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_jitter{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_jitter{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_jitter{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_jitter{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_jitter{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_jitter{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_jitter{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_jitter{addr="194.190.168.1"} 0
+time_chrony_sources_peer_jitter{addr="80.249.145.122"} 0
+time_chrony_sources_peer_jitter{addr="91.209.94.10"} 0
+time_chrony_sources_peer_jitter{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_leap Peer leap value (see tracking_leap_indicator).
 # TYPE time_chrony_sources_peer_leap gauge
-time_chrony_sources_peer_leap{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_leap{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_leap{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_leap{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_leap{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_leap{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_leap{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_leap{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_leap{addr="194.190.168.1"} 0
+time_chrony_sources_peer_leap{addr="80.249.145.122"} 0
+time_chrony_sources_peer_leap{addr="91.209.94.10"} 0
+time_chrony_sources_peer_leap{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_offset Offset of last update.
 # TYPE time_chrony_sources_peer_offset gauge
-time_chrony_sources_peer_offset{addr="185.120.22.14",id="5"} 0.0013166479766368866
-time_chrony_sources_peer_offset{addr="2001:67c:1560:8003::c7",id="0"} 0.0007995989872142673
-time_chrony_sources_peer_offset{addr="2001:67c:1560:8003::c8",id="1"} 0.0006377630052156746
-time_chrony_sources_peer_offset{addr="2a01:4f8:141:164::2",id="6"} -0.00112010701559484
-time_chrony_sources_peer_offset{addr="72.30.35.89",id="4"} -0.002825543051585555
-time_chrony_sources_peer_offset{addr="81.169.199.94",id="7"} -0.0033878530375659466
-time_chrony_sources_peer_offset{addr="91.189.89.198",id="2"} -0.0007652930216863751
-time_chrony_sources_peer_offset{addr="91.189.91.157",id="3"} -0.00028492900310084224
+time_chrony_sources_peer_offset{addr="194.190.168.1"} 0.053619589656591415
+time_chrony_sources_peer_offset{addr="80.249.145.122"} 0.02747233957052231
+time_chrony_sources_peer_offset{addr="91.209.94.10"} 0.022036690264940262
+time_chrony_sources_peer_offset{addr="94.231.123.187"} 0.0574394166469574
 # HELP time_chrony_sources_peer_peer_configured Configured flag (1|0).
 # TYPE time_chrony_sources_peer_peer_configured gauge
-time_chrony_sources_peer_peer_configured{addr="185.120.22.14",id="5"} 1
-time_chrony_sources_peer_peer_configured{addr="2001:67c:1560:8003::c7",id="0"} 1
-time_chrony_sources_peer_peer_configured{addr="2001:67c:1560:8003::c8",id="1"} 1
-time_chrony_sources_peer_peer_configured{addr="2a01:4f8:141:164::2",id="6"} 1
-time_chrony_sources_peer_peer_configured{addr="72.30.35.89",id="4"} 1
-time_chrony_sources_peer_peer_configured{addr="81.169.199.94",id="7"} 1
-time_chrony_sources_peer_peer_configured{addr="91.189.89.198",id="2"} 1
-time_chrony_sources_peer_peer_configured{addr="91.189.91.157",id="3"} 1
+time_chrony_sources_peer_peer_configured{addr="194.190.168.1"} 1
+time_chrony_sources_peer_peer_configured{addr="80.249.145.122"} 1
+time_chrony_sources_peer_peer_configured{addr="91.209.94.10"} 1
+time_chrony_sources_peer_peer_configured{addr="94.231.123.187"} 1
 # HELP time_chrony_sources_peer_pmode Pmode value from source data.
 # TYPE time_chrony_sources_peer_pmode gauge
-time_chrony_sources_peer_pmode{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_pmode{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_pmode{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_pmode{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_pmode{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_pmode{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_pmode{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_pmode{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_pmode{addr="194.190.168.1"} 0
+time_chrony_sources_peer_pmode{addr="80.249.145.122"} 0
+time_chrony_sources_peer_pmode{addr="91.209.94.10"} 0
+time_chrony_sources_peer_pmode{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_ppoll Ppoll value from source data.
 # TYPE time_chrony_sources_peer_ppoll gauge
-time_chrony_sources_peer_ppoll{addr="185.120.22.14",id="5"} 6
-time_chrony_sources_peer_ppoll{addr="2001:67c:1560:8003::c7",id="0"} 6
-time_chrony_sources_peer_ppoll{addr="2001:67c:1560:8003::c8",id="1"} 6
-time_chrony_sources_peer_ppoll{addr="2a01:4f8:141:164::2",id="6"} 6
-time_chrony_sources_peer_ppoll{addr="72.30.35.89",id="4"} 6
-time_chrony_sources_peer_ppoll{addr="81.169.199.94",id="7"} 6
-time_chrony_sources_peer_ppoll{addr="91.189.89.198",id="2"} 6
-time_chrony_sources_peer_ppoll{addr="91.189.91.157",id="3"} 6
+time_chrony_sources_peer_ppoll{addr="194.190.168.1"} 6
+time_chrony_sources_peer_ppoll{addr="80.249.145.122"} 6
+time_chrony_sources_peer_ppoll{addr="91.209.94.10"} 6
+time_chrony_sources_peer_ppoll{addr="94.231.123.187"} 6
 # HELP time_chrony_sources_peer_precision Peer precision (see tracking_precision).
 # TYPE time_chrony_sources_peer_precision gauge
-time_chrony_sources_peer_precision{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_precision{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_precision{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_precision{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_precision{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_precision{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_precision{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_precision{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_precision{addr="194.190.168.1"} 0
+time_chrony_sources_peer_precision{addr="80.249.145.122"} 0
+time_chrony_sources_peer_precision{addr="91.209.94.10"} 0
+time_chrony_sources_peer_precision{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_reach Int value of sourceReply Reachability flag (see sources_peer_reachable).
 # TYPE time_chrony_sources_peer_reach gauge
-time_chrony_sources_peer_reach{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_reach{addr="2001:67c:1560:8003::c7",id="0"} 255
-time_chrony_sources_peer_reach{addr="2001:67c:1560:8003::c8",id="1"} 187
-time_chrony_sources_peer_reach{addr="2a01:4f8:141:164::2",id="6"} 255
-time_chrony_sources_peer_reach{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_reach{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_reach{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_reach{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_reach{addr="194.190.168.1"} 255
+time_chrony_sources_peer_reach{addr="80.249.145.122"} 255
+time_chrony_sources_peer_reach{addr="91.209.94.10"} 255
+time_chrony_sources_peer_reach{addr="94.231.123.187"} 255
 # HELP time_chrony_sources_peer_reachable Reachability (1 if sourceReply Reachability flag == 255 else 0).
 # TYPE time_chrony_sources_peer_reachable gauge
-time_chrony_sources_peer_reachable{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_reachable{addr="2001:67c:1560:8003::c7",id="0"} 1
-time_chrony_sources_peer_reachable{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_reachable{addr="2a01:4f8:141:164::2",id="6"} 1
-time_chrony_sources_peer_reachable{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_reachable{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_reachable{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_reachable{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_reachable{addr="194.190.168.1"} 1
+time_chrony_sources_peer_reachable{addr="80.249.145.122"} 1
+time_chrony_sources_peer_reachable{addr="91.209.94.10"} 1
+time_chrony_sources_peer_reachable{addr="94.231.123.187"} 1
 # HELP time_chrony_sources_peer_ref_time Peer refTime (see tracking_ref_time).
 # TYPE time_chrony_sources_peer_ref_time gauge
-time_chrony_sources_peer_ref_time{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_ref_time{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_ref_time{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_ref_time{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_ref_time{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_ref_time{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_ref_time{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_ref_time{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_ref_time{addr="194.190.168.1"} 0
+time_chrony_sources_peer_ref_time{addr="80.249.145.122"} 0
+time_chrony_sources_peer_ref_time{addr="91.209.94.10"} 0
+time_chrony_sources_peer_ref_time{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_root_delay Peer root delay (see tracking_root_delay).
 # TYPE time_chrony_sources_peer_root_delay gauge
-time_chrony_sources_peer_root_delay{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_root_delay{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_root_delay{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_root_delay{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_root_delay{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_root_delay{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_root_delay{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_root_delay{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_root_delay{addr="194.190.168.1"} 0
+time_chrony_sources_peer_root_delay{addr="80.249.145.122"} 0
+time_chrony_sources_peer_root_delay{addr="91.209.94.10"} 0
+time_chrony_sources_peer_root_delay{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_root_disp Peer root dispersion (see tracking_root_disp).
 # TYPE time_chrony_sources_peer_root_disp gauge
-time_chrony_sources_peer_root_disp{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_root_disp{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_root_disp{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_root_disp{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_root_disp{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_root_disp{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_root_disp{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_root_disp{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_root_disp{addr="194.190.168.1"} 0
+time_chrony_sources_peer_root_disp{addr="80.249.145.122"} 0
+time_chrony_sources_peer_root_disp{addr="91.209.94.10"} 0
+time_chrony_sources_peer_root_disp{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_selection State of the source (int code of *|+|-|?|x|~). str value in 'desc' label. See: https://github.com/facebookincubator/ntp/blob/master/protocol/chrony/packet.go#L81
 # TYPE time_chrony_sources_peer_selection gauge
-time_chrony_sources_peer_selection{addr="185.120.22.14",desc="outlier",id="5"} 3
-time_chrony_sources_peer_selection{addr="2001:67c:1560:8003::c7",desc="candidate",id="0"} 4
-time_chrony_sources_peer_selection{addr="2001:67c:1560:8003::c8",desc="candidate",id="1"} 4
-time_chrony_sources_peer_selection{addr="2a01:4f8:141:164::2",desc="sync",id="6"} 6
-time_chrony_sources_peer_selection{addr="72.30.35.89",desc="outlier",id="4"} 3
-time_chrony_sources_peer_selection{addr="81.169.199.94",desc="outlier",id="7"} 3
-time_chrony_sources_peer_selection{addr="91.189.89.198",desc="outlier",id="2"} 3
-time_chrony_sources_peer_selection{addr="91.189.91.157",desc="outlier",id="3"} 3
+time_chrony_sources_peer_selection{addr="194.190.168.1",desc="outlier"} 3
+time_chrony_sources_peer_selection{addr="80.249.145.122",desc="outlier"} 3
+time_chrony_sources_peer_selection{addr="91.209.94.10",desc="sync"} 6
+time_chrony_sources_peer_selection{addr="94.231.123.187",desc="outlier"} 3
 # HELP time_chrony_sources_peer_stratum Peer startum (see tracking_stratum).
 # TYPE time_chrony_sources_peer_stratum gauge
-time_chrony_sources_peer_stratum{addr="185.120.22.14",id="5"} 2
-time_chrony_sources_peer_stratum{addr="2001:67c:1560:8003::c7",id="0"} 2
-time_chrony_sources_peer_stratum{addr="2001:67c:1560:8003::c8",id="1"} 2
-time_chrony_sources_peer_stratum{addr="2a01:4f8:141:164::2",id="6"} 2
-time_chrony_sources_peer_stratum{addr="72.30.35.89",id="4"} 2
-time_chrony_sources_peer_stratum{addr="81.169.199.94",id="7"} 2
-time_chrony_sources_peer_stratum{addr="91.189.89.198",id="2"} 2
-time_chrony_sources_peer_stratum{addr="91.189.91.157",id="3"} 2
+time_chrony_sources_peer_stratum{addr="194.190.168.1"} 1
+time_chrony_sources_peer_stratum{addr="80.249.145.122"} 2
+time_chrony_sources_peer_stratum{addr="91.209.94.10"} 1
+time_chrony_sources_peer_stratum{addr="94.231.123.187"} 2
 # HELP time_chrony_sources_peer_unreach Unreach flag from .
 # TYPE time_chrony_sources_peer_unreach gauge
-time_chrony_sources_peer_unreach{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_unreach{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_unreach{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_unreach{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_unreach{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_unreach{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_unreach{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_unreach{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_unreach{addr="194.190.168.1"} 0
+time_chrony_sources_peer_unreach{addr="80.249.145.122"} 0
+time_chrony_sources_peer_unreach{addr="91.209.94.10"} 0
+time_chrony_sources_peer_unreach{addr="94.231.123.187"} 0
 # HELP time_chrony_sources_peer_xleave Xleave value from source data.
 # TYPE time_chrony_sources_peer_xleave gauge
-time_chrony_sources_peer_xleave{addr="185.120.22.14",id="5"} 0
-time_chrony_sources_peer_xleave{addr="2001:67c:1560:8003::c7",id="0"} 0
-time_chrony_sources_peer_xleave{addr="2001:67c:1560:8003::c8",id="1"} 0
-time_chrony_sources_peer_xleave{addr="2a01:4f8:141:164::2",id="6"} 0
-time_chrony_sources_peer_xleave{addr="72.30.35.89",id="4"} 0
-time_chrony_sources_peer_xleave{addr="81.169.199.94",id="7"} 0
-time_chrony_sources_peer_xleave{addr="91.189.89.198",id="2"} 0
-time_chrony_sources_peer_xleave{addr="91.189.91.157",id="3"} 0
+time_chrony_sources_peer_xleave{addr="194.190.168.1"} 0
+time_chrony_sources_peer_xleave{addr="80.249.145.122"} 0
+time_chrony_sources_peer_xleave{addr="91.209.94.10"} 0
+time_chrony_sources_peer_xleave{addr="94.231.123.187"} 0
+# HELP time_chrony_sourcestats_est_offset_error_seconds Est. error in offset.
+# TYPE time_chrony_sourcestats_est_offset_error_seconds gauge
+time_chrony_sourcestats_est_offset_error_seconds{addr="194.190.168.1"} 3.6849051713943484e-05
+time_chrony_sourcestats_est_offset_error_seconds{addr="80.249.145.122"} 6.78422674536705e-05
+time_chrony_sourcestats_est_offset_error_seconds{addr="91.209.94.10"} 3.299762308597565e-05
+time_chrony_sourcestats_est_offset_error_seconds{addr="94.231.123.187"} 9.762907773256302e-05
+# HELP time_chrony_sourcestats_est_offset_seconds Est. offset on the samples.
+# TYPE time_chrony_sourcestats_est_offset_seconds gauge
+time_chrony_sourcestats_est_offset_seconds{addr="194.190.168.1"} 1.3245929963886739e-05
+time_chrony_sourcestats_est_offset_seconds{addr="80.249.145.122"} -7.233407348394394e-06
+time_chrony_sourcestats_est_offset_seconds{addr="91.209.94.10"} -8.347608672920614e-08
+time_chrony_sourcestats_est_offset_seconds{addr="94.231.123.187"} 1.3469980331137776e-06
+# HELP time_chrony_sourcestats_nruns Number of residual runs with same sign.
+# TYPE time_chrony_sourcestats_nruns gauge
+time_chrony_sourcestats_nruns{addr="194.190.168.1"} 5
+time_chrony_sourcestats_nruns{addr="80.249.145.122"} 8
+time_chrony_sourcestats_nruns{addr="91.209.94.10"} 4
+time_chrony_sourcestats_nruns{addr="94.231.123.187"} 5
+# HELP time_chrony_sourcestats_nsamples_total Number of sample points in measurement set.
+# TYPE time_chrony_sourcestats_nsamples_total gauge
+time_chrony_sourcestats_nsamples_total{addr="194.190.168.1"} 13
+time_chrony_sourcestats_nsamples_total{addr="80.249.145.122"} 14
+time_chrony_sourcestats_nsamples_total{addr="91.209.94.10"} 6
+time_chrony_sourcestats_nsamples_total{addr="94.231.123.187"} 13
+# HELP time_chrony_sourcestats_residential_freq Est. clock freq error (ppm).
+# TYPE time_chrony_sourcestats_residential_freq gauge
+time_chrony_sourcestats_residential_freq{addr="194.190.168.1"} -46.11962127685547
+time_chrony_sourcestats_residential_freq{addr="80.249.145.122"} -73.67185974121094
+time_chrony_sourcestats_residential_freq{addr="91.209.94.10"} -180.30966186523438
+time_chrony_sourcestats_residential_freq{addr="94.231.123.187"} -85.29624938964844
+# HELP time_chrony_sourcestats_skew_freq Est. error in freq.
+# TYPE time_chrony_sourcestats_skew_freq gauge
+time_chrony_sourcestats_skew_freq{addr="194.190.168.1"} 190.80960083007812
+time_chrony_sourcestats_skew_freq{addr="80.249.145.122"} 136.37266540527344
+time_chrony_sourcestats_skew_freq{addr="91.209.94.10"} 1175.4332275390625
+time_chrony_sourcestats_skew_freq{addr="94.231.123.187"} 209.43716430664062
+# HELP time_chrony_sourcestats_span_seconds Length of measurement set (time).
+# TYPE time_chrony_sourcestats_span_seconds gauge
+time_chrony_sourcestats_span_seconds{addr="194.190.168.1"} 588
+time_chrony_sourcestats_span_seconds{addr="80.249.145.122"} 651
+time_chrony_sourcestats_span_seconds{addr="91.209.94.10"} 323
+time_chrony_sourcestats_span_seconds{addr="94.231.123.187"} 588
+# HELP time_chrony_sourcestats_std_dev_seconds Est. sample standard deviation.
+# TYPE time_chrony_sourcestats_std_dev_seconds gauge
+time_chrony_sourcestats_std_dev_seconds{addr="194.190.168.1"} 2.8445878997445105e-05
+time_chrony_sourcestats_std_dev_seconds{addr="80.249.145.122"} 2.6007967069745064e-05
+time_chrony_sourcestats_std_dev_seconds{addr="91.209.94.10"} 3.85608971118927e-05
+time_chrony_sourcestats_std_dev_seconds{addr="94.231.123.187"} 3.520149737596512e-05
 # HELP time_chrony_tracking_clock_source Clock Source, str value in 'src' label, value always 1.
 # TYPE time_chrony_tracking_clock_source gauge
 time_chrony_tracking_clock_source{src="ntp"} 1
 # HELP time_chrony_tracking_correction Current correction value.
 # TYPE time_chrony_tracking_correction gauge
-time_chrony_tracking_correction 0.000194122752873227
+time_chrony_tracking_correction 0.036329105496406555
 # HELP time_chrony_tracking_frequency The rate by which the system’s clock would be wrong if chronyd was not correcting it. It is expressed in ppm (parts per million). For example, a value of 1 ppm would mean that when the system’s clock thinks it has advanced 1 second, it has actually advanced by 1.000001 seconds relative to true time.
 # TYPE time_chrony_tracking_frequency gauge
-time_chrony_tracking_frequency -6.782617568969727
+time_chrony_tracking_frequency -5102.1298828125
 # HELP time_chrony_tracking_leap_indicator Tracking Leap Indicator. 0 - no warning, 3 - alarm
 # TYPE time_chrony_tracking_leap_indicator gauge
 time_chrony_tracking_leap_indicator{desc="none"} 0
 # HELP time_chrony_tracking_offset The estimated local offset on the last clock update.
 # TYPE time_chrony_tracking_offset gauge
-time_chrony_tracking_offset 0.0010454882867634296
+time_chrony_tracking_offset 0.046362072229385376
 # HELP time_chrony_tracking_precision Current precision.
 # TYPE time_chrony_tracking_precision gauge
 time_chrony_tracking_precision 0
 # HELP time_chrony_tracking_ref_id Encoded address of connected machine (if available).
 # TYPE time_chrony_tracking_ref_id gauge
-time_chrony_tracking_ref_id 1.259741567e+09
+time_chrony_tracking_ref_id 1.540447754e+09
 # HELP time_chrony_tracking_ref_time The time (UTC) at which the last measurement from the reference source was processed.
 # TYPE time_chrony_tracking_ref_time gauge
-time_chrony_tracking_ref_time 1.6177260372384894e+09
+time_chrony_tracking_ref_time 1.6382086080759072e+09
 # HELP time_chrony_tracking_root_delay Total of the network path delays to the stratum-1 computer from which the computer is ultimately synchronized.
 # TYPE time_chrony_tracking_root_delay gauge
-time_chrony_tracking_root_delay 0.0336073637008667
+time_chrony_tracking_root_delay 0.007764442823827267
 # HELP time_chrony_tracking_root_disp Total dispersion accumulated through all the computers back to the stratum-1 computer from which the computer is ultimately synchronized.
 # TYPE time_chrony_tracking_root_disp gauge
-time_chrony_tracking_root_disp 0.028860393911600113
+time_chrony_tracking_root_disp 0.0289462860673666
 # HELP time_chrony_tracking_stratum The stratum indicates how many hops away from a computer with an attached reference clock we are.
 # TYPE time_chrony_tracking_stratum gauge
-time_chrony_tracking_stratum 3
+time_chrony_tracking_stratum 2
 # HELP time_exporter_build_info A metric with a constant '1' value labeled by version, revision, branch, and goversion from which time_exporter was built.
 # TYPE time_exporter_build_info gauge
-time_exporter_build_info{branch="HEAD",goversion="go1.16.3",revision="de114d59b7f0177bca7d16f7e0e2fb29c929ef97",version="0.0.2"} 1
+time_exporter_build_info{branch="",goversion="go1.17.2",revision="",version=""} 1
 # HELP time_scrape_collector_duration_seconds time_exporter: Duration of a collector scrape.
 # TYPE time_scrape_collector_duration_seconds gauge
-time_scrape_collector_duration_seconds{collector="chrony"} 0.001590579
-time_scrape_collector_duration_seconds{collector="ntp"} 0.000133804
-time_scrape_collector_duration_seconds{collector="time"} 8.204e-05
-time_scrape_collector_duration_seconds{collector="timex"} 8.2309e-05
+time_scrape_collector_duration_seconds{collector="chrony"} 0.03883523
 # HELP time_scrape_collector_success time_exporter: Whether a collector succeeded.
 # TYPE time_scrape_collector_success gauge
 time_scrape_collector_success{collector="chrony"} 1
-time_scrape_collector_success{collector="ntp"} 0
-time_scrape_collector_success{collector="time"} 1
-time_scrape_collector_success{collector="timex"} 1
-# HELP time_time_seconds System time in seconds since epoch (1970).
-# TYPE time_time_seconds gauge
-time_time_seconds 1.617726064599079e+09
-# HELP time_timex_estimated_error_seconds Estimated error in seconds.
-# TYPE time_timex_estimated_error_seconds gauge
-time_timex_estimated_error_seconds 0.001419
-# HELP time_timex_frequency_adjustment_ratio Local clock frequency adjustment.
-# TYPE time_timex_frequency_adjustment_ratio gauge
-time_timex_frequency_adjustment_ratio 1.0000070786743165
-# HELP time_timex_loop_time_constant Phase-locked loop time constant.
-# TYPE time_timex_loop_time_constant gauge
-time_timex_loop_time_constant 2
-# HELP time_timex_maxerror_seconds Maximum error in seconds.
-# TYPE time_timex_maxerror_seconds gauge
-time_timex_maxerror_seconds 0.059306
-# HELP time_timex_offset_seconds Time offset in between local system and reference clock.
-# TYPE time_timex_offset_seconds gauge
-time_timex_offset_seconds 0
-# HELP time_timex_pps_calibration_total Pulse per second count of calibration intervals.
-# TYPE time_timex_pps_calibration_total counter
-time_timex_pps_calibration_total 0
-# HELP time_timex_pps_error_total Pulse per second count of calibration errors.
-# TYPE time_timex_pps_error_total counter
-time_timex_pps_error_total 0
-# HELP time_timex_pps_frequency_hertz Pulse per second frequency.
-# TYPE time_timex_pps_frequency_hertz gauge
-time_timex_pps_frequency_hertz 0
-# HELP time_timex_pps_jitter_seconds Pulse per second jitter.
-# TYPE time_timex_pps_jitter_seconds gauge
-time_timex_pps_jitter_seconds 0
-# HELP time_timex_pps_jitter_total Pulse per second count of jitter limit exceeded events.
-# TYPE time_timex_pps_jitter_total counter
-time_timex_pps_jitter_total 0
-# HELP time_timex_pps_shift_seconds Pulse per second interval duration.
-# TYPE time_timex_pps_shift_seconds gauge
-time_timex_pps_shift_seconds 0
-# HELP time_timex_pps_stability_exceeded_total Pulse per second count of stability limit exceeded events.
-# TYPE time_timex_pps_stability_exceeded_total counter
-time_timex_pps_stability_exceeded_total 0
-# HELP time_timex_pps_stability_hertz Pulse per second stability, average of recent frequency changes.
-# TYPE time_timex_pps_stability_hertz gauge
-time_timex_pps_stability_hertz 0
-# HELP time_timex_status Value of the status array bits.
-# TYPE time_timex_status gauge
-time_timex_status 0
-# HELP time_timex_sync_status Is clock synchronized to a reliable server (1 = yes, 0 = no).
-# TYPE time_timex_sync_status gauge
-time_timex_sync_status 1
-# HELP time_timex_tai_offset_seconds International Atomic Time (TAI) offset.
-# TYPE time_timex_tai_offset_seconds gauge
-time_timex_tai_offset_seconds 0
-# HELP time_timex_tick_seconds Seconds between clock ticks.
-# TYPE time_timex_tick_seconds gauge
-time_timex_tick_seconds 0.01

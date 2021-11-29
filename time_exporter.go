@@ -15,6 +15,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -159,10 +160,10 @@ func main() {
 			"collector.disable-defaults",
 			"Set all collectors to disabled by default.",
 		).Default("false").Bool()
-		configFile = kingpin.Flag(
-			"web.config",
-			"[EXPERIMENTAL] Path to config yaml file that can enable TLS or authentication.",
-		).Default("").String()
+		//configFile = kingpin.Flag(
+		//	"web.config",
+		//	"[EXPERIMENTAL] Path to config yaml file that can enable TLS or authentication.",
+		//).Default("").String()
 	)
 
 	promlogConfig := &promlog.Config{}
@@ -171,6 +172,13 @@ func main() {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 	logger := promlog.New(promlogConfig)
+
+	// setting logrus logLevel with the same value as we have in logger
+	logrusLogLevel, err := logrus.ParseLevel(promlogConfig.Level.String())
+	if err != nil {
+		level.Error(logger).Log("err", "cannot set logrus log level")
+	}
+	logrus.SetLevel(logrusLogLevel)
 
 	if *disableDefaultCollectors {
 		collector.DisableDefaultCollectors()
@@ -184,17 +192,17 @@ func main() {
 	http.Handle(*metricsPath, newHandler(!*disableExporterMetrics, *maxRequests, logger))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
-			<head><title>Time Exporter</title></head>
-			<body>
-			<h1>Time Exporter</h1>
-			<p><a href="` + *metricsPath + `">Metrics</a></p>
-			</body>
-			</html>`))
+<head><title>Time Exporter</title></head>
+<body>
+<h1>Time Exporter</h1>
+<p><a href="` + *metricsPath + `">Metrics</a></p>
+</body>
+</html>`))
 	})
 
 	level.Info(logger).Log("msg", "Listening on", "address", *listenAddress)
 	server := &http.Server{Addr: *listenAddress}
-	if err := web.ListenAndServe(server, *configFile, logger); err != nil {
+	if err := web.ListenAndServe(server, "", logger); err != nil {
 		level.Error(logger).Log("err", err)
 		os.Exit(1)
 	}

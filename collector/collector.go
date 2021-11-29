@@ -44,7 +44,7 @@ var (
 	)
 )
 
-const defaultEnabled = true
+const defaultEnabled = false
 
 var (
 	factories        = make(map[string]func(logger log.Logger) (Collector, error))
