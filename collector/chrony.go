@@ -235,7 +235,7 @@ func NewChronyCollector(logger log.Logger) (Collector, error) {
 		sourcesPeerHeadway:      typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_headway"), "Headway value from source data.", peerLabels, nil), prometheus.GaugeValue},                                           //int
 		sourcesPeerXleave:       typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sources_peer_xleave"), "Xleave value from source data.", peerLabels, nil), prometheus.GaugeValue},                                             //float
 
-		sourceStatsNSamples:		typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_nsamples_total"), "Number of sample points in measurement set.", peerLabels, nil), prometheus.GaugeValue},                                               //int
+		sourceStatsNSamples:		typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_nsamples"), "Number of sample points in measurement set.", peerLabels, nil), prometheus.GaugeValue},                                               //int
 		sourceStatsNRuns:        	typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_nruns"), "Number of residual runs with same sign.", peerLabels, nil), prometheus.GaugeValue},                                               //int
 		sourceStatsSpanSeconds:     typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_span_seconds"), "Length of measurement set (time).", peerLabels, nil), prometheus.GaugeValue},                                             //float
 		sourceStatsStdDev:       	typedDesc{prometheus.NewDesc(prometheus.BuildFQName(namespace, chronySubsystem, "sourcestats_std_dev_seconds"), "Est. sample standard deviation.", peerLabels, nil), prometheus.GaugeValue},                                             //float
@@ -395,9 +395,9 @@ func (c *chronyCollector) Update(ch chan<- prometheus.Metric) error {
 		ch <- c.sourcesPeerRootDelay.mustNewConstMetric(peer.RootDelay/1e3, peerLabelValues...)
 		ch <- c.sourcesPeerRootDisp.mustNewConstMetric(peer.RootDisp/1e3, peerLabelValues...)
 		//source stats
-		ch <- c.sourceStatsStdDev.mustNewConstMetric(peer.StdDev/1e3, peerLabelValues...)
-		ch <- c.sourceStatsEstOffset.mustNewConstMetric(peer.EstOffset/1e3, peerLabelValues...)
-		ch <- c.sourceStatsEstOffsetError.mustNewConstMetric(peer.EstOffsetError/1e3, peerLabelValues...)
+		ch <- c.sourceStatsStdDev.mustNewConstMetric(peer.StdDev, peerLabelValues...)
+		ch <- c.sourceStatsEstOffset.mustNewConstMetric(peer.EstOffset, peerLabelValues...)
+		ch <- c.sourceStatsEstOffsetError.mustNewConstMetric(peer.EstOffsetError, peerLabelValues...)
 		ch <- c.sourceStatsResidFreq.mustNewConstMetric(peer.ResidFreq, peerLabelValues...)
 		ch <- c.sourceStatsSkewFreq.mustNewConstMetric(peer.SkewFreq, peerLabelValues...)
 
