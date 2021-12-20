@@ -1,0 +1,151 @@
+# Default values for time-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: dmi7ry/time-exporter
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# See https://kubernetes.io/docs/tasks/manage-daemon/update-daemon-set/
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 100%
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext:
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+  # allowPrivilegeEscalation: true
+
+service:
+  type: ClusterIP
+  port: 9818
+  annotations: {}
+    # prometheus.io/scrape: "true"
+
+# Accessing the host's network may be required to access the chronyd
+# command channel
+hostNetwork: true
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 64Mi
+  # requests:
+  #   cpu: 50m
+  #   memory: 32Mi
+
+nodeSelector: {}
+
+tolerations: []
+  # - key: node-role.kubernetes.io/master
+  #   operator: Exists
+  #   effect: NoSchedule
+
+affinity: {}
+
+# Pod Priority
+# See https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/
+# priorityClassName: system-node-critical
+priorityClassName: ""
+
+livenessProbe:
+  enabled: true
+  failureThreshold: 3
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
+readinessProbe:
+  enabled: true
+  failureThreshold: 3
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
+logging:
+  # Log level (debug, info, warn, error)
+  level: info
+
+  # Logging format (logfmt, json)
+  format: json
+
+collectors:
+
+  # Enable the exporter metrics
+  exporterMetrics:
+    enabled: true
+
+  # Chrony
+  chrony:
+
+    # Enable the Chrony collector
+    enabled: false
+
+    # chronyd socket or address in container
+    #
+    # When using a socket, ensure that the container has write access
+    # to it. By default, chronyd exposes its UDP command socket to the
+    # host's loopback address only which is inaccessible for the container.
+    #
+    # address: /var/run/chrony/chronyd.sock
+    address: 127.0.0.1:323
+
+    # chronyd socket host path
+    # Passed through only if .address is a path
+    hostPath: /var/run/chrony/chronyd.sock
+
+    # Log Chrony JSON reponse (requires log level debug)
+    logResponse: false
+
+  # ntpd
+  ntp:
+    # Enable the ntpd collector
+    enabled: false
+    server: 127.0.0.1
+    protocol: 4
+    isLocal: true
+    maxDistance: 3.46608s
+    localOffsetTolerance: 1ms
+
+  # time
+  time:
+    # Enable time collector
+    enabled: false
+
+  # timex
+  timex:
+    # Enable timex metrics
+    enabled: false
+
+# Additional arguments to pass to the Time Exporter
+extraArgs: {}
+  # web.telemetry-path: /metrics
